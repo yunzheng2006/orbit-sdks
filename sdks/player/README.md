@@ -1,4 +1,4 @@
-# Orbit Player (Stream and VOD) SDK 1.6.7
+# Orbit Player (Stream and VOD) SDK 1.6.8
 
 The player for live channels and uploaded videos: adaptive HLS, near-real-time live when the channel offers it.
 
@@ -15,10 +15,10 @@ Nothing to install and no build step. Load the script from the platform:
 Or pin exactly this version with Subresource Integrity:
 
 ```html
-<script src="https://live.yunzheng.space/v1.js" integrity="sha384-QRZq66Z8T0VRDvVN7nR4kCFP9okfV3XJRuJh6ncYUD6lb9zji2QA7/RagKgmkTqF" crossorigin="anonymous"></script>
+<script src="https://live.yunzheng.space/v1.js" integrity="sha384-pFgetRsy2plk241ehM55L/PoALX3PEBe5BU6a7NgzOsoVF7qdv/BmLfckV9Y/W/s" crossorigin="anonymous"></script>
 ```
 
-The copy in this folder ([`orbit-player.js`](orbit-player.js)) is byte-for-byte what that URL serves for version 1.6.7 (sha256 `4faf763044af0707912f034d42ff0c9958cf931e929644473b4422b42273d6a8`). Self-hosting it works, but you then stop receiving fixes; loading it from the platform is recommended.
+The copy in this folder ([`orbit-player.js`](orbit-player.js)) is byte-for-byte what that URL serves for version 1.6.8 (sha256 `fb2a7ac216104bcf8cce0bc96e172d29dd7971fa0aab171ec164f986b73c4dd5`). Self-hosting it works, but you then stop receiving fixes; loading it from the platform is recommended.
 
 Browser support: current versions of Chrome, Edge, Firefox and Safari, desktop and mobile. The script defines one global, `OrbitPlayer`.
 
@@ -53,6 +53,8 @@ Where a viewer actually connects is what `placement` chose, and it is the same c
 | A segment | 2 minutes. A segment never changes once written. |
 
 > Nothing is kept here unless the channel has recording switched on. When a broadcast ends its segments age out and the address answers as offline; a recorded broadcast is kept separately and played back from its own address (see Recording below).
+
+> A recording kept with us plays at full quality for 7 days after the broadcast ends, and is then kept as a 720p copy. Each recording in the console shows which of the two it is.
 
 ### The player
 
@@ -176,7 +178,7 @@ Full documentation: <https://orbit.yunzheng.space/docs/vod/>
 
 ### 引入
 
-无需安装,也没有构建步骤。直接从平台加载 `https://live.yunzheng.space/v1.js`,或用上方带 `integrity` 的写法固定版本 1.6.7。本目录中的 `orbit-player.js` 与该地址提供的内容逐字节一致。支持当前版本的 Chrome、Edge、Firefox 与 Safari(桌面与移动端)。
+无需安装,也没有构建步骤。直接从平台加载 `https://live.yunzheng.space/v1.js`,或用上方带 `integrity` 的写法固定版本 1.6.8。本目录中的 `orbit-player.js` 与该地址提供的内容逐字节一致。支持当前版本的 Chrome、Edge、Firefox 与 Safari(桌面与移动端)。
 
 ### 观看地址
 
@@ -207,6 +209,8 @@ https://live.yunzheng.space/s/<playback id>/index.m3u8  HLS, for your own player
 | 单个分片 | 2 分钟。分片一旦写出就不再改变。 |
 
 > 除非频道开启了录制,这里不会留存任何内容。直播结束后分片自然过期,地址随即显示为未在播;开启录制的直播另行保存,并从它自己的地址回放(见下文“录制”)。
+
+> 保存在我们这里的录制,直播结束后 7 天内保持原画质,之后保留为 720p 版本。控制台里每条录制都会标明它当前是哪一种。
 
 ### 播放器
 

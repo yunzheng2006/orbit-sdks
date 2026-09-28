@@ -14,7 +14,7 @@ Each SDK is one script tag, with no dependencies and no build step. Every folder
 | [Orbit Talk](sdks/talk/) | Chat and messaging: join a room, send and receive, read history, resume after a reconnect. | `https://talk.yunzheng.space/v1.js` | 1.1.0 |
 | [Orbit Meet](sdks/meet/) | A whole meeting inside your page, in one call: waiting room, screen sharing, captions and host controls included. | `https://meet.yunzheng.space/v1.js` | 1.0.1 |
 | [Orbit Verify](sdks/verify/) | A CAPTCHA alternative for forms: a widget most visitors never click, confirmed by one server-side request. | `https://verify.yunzheng.space/v1.js` | 1.4.0 |
-| [Orbit Player (Stream and VOD)](sdks/player/) | The player for live channels and uploaded videos: adaptive HLS, near-real-time live when the channel offers it. | `https://live.yunzheng.space/v1.js` | 1.6.7 |
+| [Orbit Player (Stream and VOD)](sdks/player/) | The player for live channels and uploaded videos: adaptive HLS, near-real-time live when the channel offers it. | `https://live.yunzheng.space/v1.js` | 1.6.8 |
 
 ## REST API
 
@@ -42,7 +42,7 @@ Each SDK is one script tag, with no dependencies and no build step. Every folder
 | [Orbit Talk](sdks/talk/) | 聊天与即时消息:加入会话、收发消息、读取历史、断线后续传。 | `https://talk.yunzheng.space/v1.js` | 1.1.0 |
 | [Orbit Meet](sdks/meet/) | 一次调用把完整会议放进你的页面:等候室、屏幕共享、字幕与主持人控制都在其中。 | `https://meet.yunzheng.space/v1.js` | 1.0.1 |
 | [Orbit Verify](sdks/verify/) | 表单验证码替代方案:多数访客无需点击的小组件,服务端一次请求完成确认。 | `https://verify.yunzheng.space/v1.js` | 1.4.0 |
-| [Orbit Player (Stream and VOD)](sdks/player/) | 直播频道与点播视频的播放器:自适应 HLS,频道支持时走准实时。 | `https://live.yunzheng.space/v1.js` | 1.6.7 |
+| [Orbit Player (Stream and VOD)](sdks/player/) | 直播频道与点播视频的播放器:自适应 HLS,频道支持时走准实时。 | `https://live.yunzheng.space/v1.js` | 1.6.8 |
 
 每个 SDK 都只需一个 script 标签,无依赖、无构建步骤;各目录提供与平台逐字节一致的脚本、SRI 哈希与参考文档。REST API 规范见 `openapi/openapi.json`,示例见 `examples/`。
 

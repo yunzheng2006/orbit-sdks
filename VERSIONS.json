@@ -24,10 +24,10 @@
     "sha256": "1c4064f56d8d4ed23851f53fb83039e7d3070afbc038b2aacf2ab9c7573f193f"
   },
   "player": {
-    "version": "1.6.7",
+    "version": "1.6.8",
     "url": "https://live.yunzheng.space/v1.js",
-    "sri": "sha384-QRZq66Z8T0VRDvVN7nR4kCFP9okfV3XJRuJh6ncYUD6lb9zji2QA7/RagKgmkTqF",
-    "sha256": "4faf763044af0707912f034d42ff0c9958cf931e929644473b4422b42273d6a8"
+    "sri": "sha384-pFgetRsy2plk241ehM55L/PoALX3PEBe5BU6a7NgzOsoVF7qdv/BmLfckV9Y/W/s",
+    "sha256": "fb2a7ac216104bcf8cce0bc96e172d29dd7971fa0aab171ec164f986b73c4dd5"
   },
   "api": {
     "version": "1.0.0",

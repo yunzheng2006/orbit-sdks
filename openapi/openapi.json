@@ -764,6 +764,30 @@
             "default": 0,
             "description": "extra seconds the audience is held behind the broadcaster, applied at the origin, so it cannot be skipped by a player."
           },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "high",
+              "standard"
+            ],
+            "default": "high",
+            "description": "how hard the ingest city's encoder works on what it re-encodes for this channel: the source when a watermark is on, and every lower quality. high: a slower encoder setting, a higher bitrate for the watermarked source, a 1080p60 top quality and higher audio bitrates. standard: the lighter settings. A channel with no watermark and no lower qualities is delivered exactly as published either way."
+          },
+          "max_bitrate_kbps": {
+            "type": "integer",
+            "readOnly": true,
+            "description": "the ingest ceiling a broadcast on this channel is held to, in kbit/s. Set per account: by your plan, or by the platform for your account. Not writable here. A broadcast above it is refused with bitrate-too-high."
+          },
+          "max_bitrate_source": {
+            "type": "string",
+            "readOnly": true,
+            "enum": [
+              "plan",
+              "override",
+              "default"
+            ],
+            "description": "where max_bitrate_kbps comes from."
+          },
           "playback_url": {
             "type": "string",
             "description": "the HLS manifest"
@@ -1022,6 +1046,15 @@
             "default": 0,
             "description": "PATCH only. Extra seconds the audience is held behind the broadcaster, applied at the origin, so it cannot be skipped by a player. Takes effect on the next broadcast."
           },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "high",
+              "standard"
+            ],
+            "default": "high",
+            "description": "PATCH only. How hard the ingest city's encoder works on what it re-encodes for this channel: the source when a watermark is on, and every lower quality. high: clearer picture for more server work; standard: the lighter settings. Takes effect on the next broadcast."
+          },
           "watermark": {
             "type": "string",
             "enum": [
@@ -1243,6 +1276,30 @@
           "held_objects": {
             "type": "integer",
             "description": "objects of this recording sitting in OUR storage because your bucket refused them. 0 is the ordinary case; anything else is what a re-export moves."
+          },
+          "retention": {
+            "type": "object",
+            "nullable": true,
+            "description": "retention by quality. A recording kept with us is full quality for 7 days after it ends ({tier: 'full', full_until}), then kept as a lower-quality 720p copy ({tier: 'archived', archived_at}). Null for a recording in your own bucket.",
+            "properties": {
+              "tier": {
+                "type": "string",
+                "enum": [
+                  "full",
+                  "archived"
+                ]
+              },
+              "full_until": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "archived_at": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              }
+            }
           },
           "replay_url": {
             "type": "string",
@@ -8136,14 +8193,60 @@
                 },
                 "address": {
                   "type": "string"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "owner",
+                    "manager",
+                    "member"
+                  ]
+                },
+                "delivery": {
+                  "type": "string",
+                  "enum": [
+                    "each",
+                    "none"
+                  ],
+                  "description": "none: no copy by email. In a group with an archive, internal members never get a copy of their own and read the archive instead; they can still post to a members-only group"
                 }
               }
             },
-            "description": "Internal members ({mailbox_id}) each get their own copy; external members ({address}) are forwarded with SRS."
+            "description": "Internal members ({mailbox_id}, on this domain or another of your domains on the same server) and external members ({address}, forwarded unchanged with SRS). Without an archive the group is a distribution list and every member gets a copy; with an archive, group mail is delivered to the archive only (external members still get their copy)."
           },
           "allow_external_senders": {
             "type": "boolean",
-            "description": "Off by default: an open group address is a spam relay with a friendly name."
+            "description": "Same as posting = anyone. Off by default: an open group address is a spam relay with a friendly name."
+          },
+          "posting": {
+            "type": "string",
+            "enum": [
+              "anyone",
+              "org",
+              "members"
+            ],
+            "description": "Who may post: anyone; senders in your own domains on this server; or the group's members only"
+          },
+          "reply_to": {
+            "type": "string",
+            "enum": [
+              "sender",
+              "group"
+            ],
+            "description": "group: members' copies carry Reply-To the group"
+          },
+          "subject_tag": {
+            "type": "string",
+            "nullable": true,
+            "description": "Prefixed to the subject of members' copies, e.g. [noc]"
+          },
+          "archive": {
+            "type": "boolean",
+            "description": "Keep a group archive: a collaborative inbox the people behind the internal members can open in web mail (assign, mark done, search). Group mail is delivered there instead of to each internal member. A member replies from their own address with the group copied, so the reply joins the group's conversation. Only members can read it"
+          },
+          "archive_mailbox_id": {
+            "type": "string",
+            "nullable": true
           },
           "members_can_send": {
             "type": "boolean",
@@ -8183,6 +8286,32 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "posting": {
+            "type": "string",
+            "enum": [
+              "anyone",
+              "org",
+              "members"
+            ]
+          },
+          "reply_to": {
+            "type": "string",
+            "enum": [
+              "sender",
+              "group"
+            ]
+          },
+          "subject_tag": {
+            "type": "string",
+            "nullable": true
+          },
+          "archive": {
+            "type": "boolean"
+          },
+          "replace_alias": {
+            "type": "boolean",
+            "description": "Create only: an alias with the same address is replaced by this group in one step, so the address never stops accepting mail"
           }
         }
       },

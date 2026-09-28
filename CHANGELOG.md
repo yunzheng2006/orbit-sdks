@@ -2,6 +2,10 @@
 
 ## 2026-09-28
 
+- Orbit Player (Stream and VOD): 1.6.8
+
+## 2026-09-28
+
 - OpenAPI: 292 paths
 
 ## 2026-09-28
