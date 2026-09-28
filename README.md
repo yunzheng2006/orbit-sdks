@@ -18,7 +18,7 @@ Each SDK is one script tag, with no dependencies and no build step. Every folder
 
 ## REST API
 
-- Specification: [`openapi/openapi.json`](openapi/openapi.json) (OpenAPI 3.1.0, 291 paths), exported from `https://dash.yunzheng.space/api/v1/openapi.json`.
+- Specification: [`openapi/openapi.json`](openapi/openapi.json) (OpenAPI 3.1.0, 292 paths), exported from `https://dash.yunzheng.space/api/v1/openapi.json`.
 - Examples: [`examples/rest/`](examples/rest/) — curl and a zero-dependency Node.js client for every product; [`examples/verify-server.mjs`](examples/verify-server.mjs) for confirming a Verify response.
 - Phone systems: [orbit-vgate-examples](https://github.com/yunzheng2006/orbit-vgate-examples).
 

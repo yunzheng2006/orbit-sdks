@@ -2,6 +2,10 @@
 
 ## 2026-09-28
 
+- OpenAPI: 292 paths
+
+## 2026-09-28
+
 - Orbit Talk: 1.1.0 (same version, contents changed)
 - Orbit Verify: 1.4.0 (same version, contents changed)
 - OpenAPI: 291 paths

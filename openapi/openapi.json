@@ -4929,6 +4929,10 @@
           "balance_micros": {
             "type": "integer"
           },
+          "credits_micros": {
+            "type": "integer",
+            "nullable": true
+          },
           "ledger": {
             "type": "array",
             "items": {
@@ -37061,6 +37065,116 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vgate/balance/topup": {
+      "post": {
+        "operationId": "vgate.balance.topup",
+        "summary": "Add to the prepaid balance with Debit, the stored value on credits.yunzheng.space. Owner only; retry with the same idempotency_key is free",
+        "tags": [
+          "V-Gate"
+        ],
+        "x-scope": "write",
+        "x-auth": "session",
+        "description": "Browser session only — API tokens cannot call this.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "balance_micros": {
+                      "type": "integer"
+                    },
+                    "paid_micros": {
+                      "type": "integer"
+                    },
+                    "entry": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "amount_micros",
+                  "idempotency_key"
+                ],
+                "properties": {
+                  "amount_micros": {
+                    "type": "integer",
+                    "minimum": 1000000,
+                    "maximum": 1000000000
+                  },
+                  "idempotency_key": {
+                    "type": "string"
+                  }
                 }
               }
             }
