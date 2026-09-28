@@ -8,8 +8,8 @@
   "talk": {
     "version": "1.1.0",
     "url": "https://talk.yunzheng.space/v1.js",
-    "sri": "sha384-qY8ZbFtvnA19Epci/QFUb318+oCK9GbvFbXk1xzSM2FmHV79mol6yT1iI/358MyG",
-    "sha256": "f983dcbef629f2abb06f295a8c06111ecbae2baadef4da522a9f62a1e79d245c"
+    "sri": "sha384-rhQopY5Pc/c+DPRSDOXIlEwrjRKR38rjvrfmHLBy/q0gg6SlG0Mf577KUsAJCQnA",
+    "sha256": "07adaa66ec55f8e324f69c5ab0dbaf25cb9d77a43ae1b7985ba3a4c52eb7e35d"
   },
   "meet": {
     "version": "1.0.1",
@@ -20,8 +20,8 @@
   "verify": {
     "version": "1.4.0",
     "url": "https://verify.yunzheng.space/v1.js",
-    "sri": "sha384-pVkqpA2KCEbXZr1jUXN6sUNlyo57JWKhwt52x06UBEcqaKaMUuhnPk+Oruh31ACl",
-    "sha256": "fe3dfff90a500dc659ff743362da9b0ef32e19a79ac32a20eca54e12422943b0"
+    "sri": "sha384-Zw45nY6+hkVARMZT+dVbwUHdVc7a1Rnu+HVu+M7KbpPCuZj4aVC+hOIinXTORtF1",
+    "sha256": "1c4064f56d8d4ed23851f53fb83039e7d3070afbc038b2aacf2ab9c7573f193f"
   },
   "player": {
     "version": "1.6.7",
@@ -31,6 +31,6 @@
   },
   "api": {
     "version": "1.0.0",
-    "paths": 247
+    "paths": 291
   }
 }

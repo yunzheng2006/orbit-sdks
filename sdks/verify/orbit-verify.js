@@ -92,10 +92,10 @@
       e_host: '\u6b64\u9875\u9762\u65e0\u6743\u4f7f\u7528\u8be5\u5bc6\u94a5', e_key: '\u7ad9\u70b9\u5bc6\u94a5\u672a\u542f\u7528', e_many: '\u5c1d\u8bd5\u8fc7\u591a\uff0c\u8bf7\u7a0d\u5019',
       e_net: '\u8bf7\u68c0\u67e5\u7f51\u7edc\u8fde\u63a5', e_svc: '\u9a8c\u8bc1\u670d\u52a1\u65e0\u54cd\u5e94', e_again: '\u8bf7\u91cd\u8bd5' }
   };
-  function pickLocale(list12) {
+  function pickLocale(list15) {
   var i, t;
-  for (i = 0; i < (list12 || []).length; i++) {
-    t = String(list12[i] || "").toLowerCase().replace(/_/g, "-").trim();
+  for (i = 0; i < (list15 || []).length; i++) {
+    t = String(list15[i] || "").toLowerCase().replace(/_/g, "-").trim();
     if (!t) continue;
     if (t === "zh" || t.indexOf("zh-") === 0) return "zh-CN";
     if (t === "en" || t.indexOf("en-") === 0) return "en";

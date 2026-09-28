@@ -116,6 +116,15 @@
     var outbox = [];           // sent, not yet acknowledged
     var session = null;        // the last successful join
     var timer = 0;
+    // Liveness. A path that dies without a FIN or RST (Wi-Fi hand-over, a NAT
+    // that forgot the mapping, a laptop waking up) leaves the socket "open"
+    // for as long as the OS cares to wait — minutes, and messages stop with
+    // no sign. The node answers {t:'ping'} with {t:'pong'}, so a socket that
+    // has carried nothing for DEAD_MS despite pings is dropped and reopened;
+    // the cursor and the outbox make that lossless.
+    var PING_MS = 15000, DEAD_MS = 45000;
+    var lastFrame = 0, beat = 0;
+    function stopBeat() { if (beat) { clearInterval(beat); beat = 0; } }
 
     function fail(code, message) {
       var e = new Error(message);
@@ -154,6 +163,22 @@
         ws = sock;
         sock.onopen = function () {
           attempt = 0;
+          lastFrame = Date.now();
+          stopBeat();
+          beat = setInterval(function () {
+            if (ws !== sock) { stopBeat(); return; }
+            if (Date.now() - lastFrame > DEAD_MS) {
+              // Do not wait for close() to finish: on a dead path it never
+              // does. Detach, then take the same road as a real close.
+              stopBeat();
+              var dead = sock.onclose;
+              sock.onclose = null; sock.onmessage = null;
+              try { sock.close(4000, 'no answer'); } catch (e) {}
+              if (dead) dead();
+              return;
+            }
+            try { sock.send(JSON.stringify({ t: 'ping' })); } catch (e) {}
+          }, PING_MS);
           // hello first, always. The node answers with what it can actually
           // serve, which may be LATER than the cursor asked for when history
           // has aged out — a client that assumed otherwise would show a gap
@@ -165,6 +190,7 @@
           sock.send(JSON.stringify({ t: 'hello', cursor: cursor, label: String((j && j.label) || opts.label || '').slice(0, 40) }));
         };
         sock.onmessage = function (ev) {
+          lastFrame = Date.now();
           var m = null;
           try { m = JSON.parse(ev.data); } catch (e) { return; }
           if (!m || typeof m !== 'object') return;
@@ -204,7 +230,7 @@
           if (m.t === 'error') { fail(m.code || 'error', m.message || 'This conversation refused the request.'); return; }
         };
         sock.onclose = function () {
-          if (ws === sock) ws = null;
+          if (ws === sock) { ws = null; stopBeat(); }
           if (closed) return;
           onState('closed');
           attempt += 1;
@@ -243,6 +269,7 @@
       peer: function () { return session && session.peer_id; },
       leave: function () {
         closed = true;
+        stopBeat();
         if (timer) clearTimeout(timer);
         if (ws) { try { ws.close(1000, 'left'); } catch (e) {} ws = null; }
         onState('left');

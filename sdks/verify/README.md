@@ -15,10 +15,10 @@ Nothing to install and no build step. Load the script from the platform:
 Or pin exactly this version with Subresource Integrity:
 
 ```html
-<script src="https://verify.yunzheng.space/v1.js" integrity="sha384-pVkqpA2KCEbXZr1jUXN6sUNlyo57JWKhwt52x06UBEcqaKaMUuhnPk+Oruh31ACl" crossorigin="anonymous"></script>
+<script src="https://verify.yunzheng.space/v1.js" integrity="sha384-Zw45nY6+hkVARMZT+dVbwUHdVc7a1Rnu+HVu+M7KbpPCuZj4aVC+hOIinXTORtF1" crossorigin="anonymous"></script>
 ```
 
-The copy in this folder ([`orbit-verify.js`](orbit-verify.js)) is byte-for-byte what that URL serves for version 1.4.0 (sha256 `fe3dfff90a500dc659ff743362da9b0ef32e19a79ac32a20eca54e12422943b0`). Self-hosting it works, but you then stop receiving fixes; loading it from the platform is recommended.
+The copy in this folder ([`orbit-verify.js`](orbit-verify.js)) is byte-for-byte what that URL serves for version 1.4.0 (sha256 `1c4064f56d8d4ed23851f53fb83039e7d3070afbc038b2aacf2ab9c7573f193f`). Self-hosting it works, but you then stop receiving fixes; loading it from the platform is recommended.
 
 The widget is also served with `async defer`; a pinned `?v=` query is accepted but not required. Keep the integrity hash in step with the version you pin, or omit it to always receive fixes.
 

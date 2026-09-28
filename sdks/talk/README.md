@@ -15,10 +15,10 @@ Nothing to install and no build step. Load the script from the platform:
 Or pin exactly this version with Subresource Integrity:
 
 ```html
-<script src="https://talk.yunzheng.space/v1.js" integrity="sha384-qY8ZbFtvnA19Epci/QFUb318+oCK9GbvFbXk1xzSM2FmHV79mol6yT1iI/358MyG" crossorigin="anonymous"></script>
+<script src="https://talk.yunzheng.space/v1.js" integrity="sha384-rhQopY5Pc/c+DPRSDOXIlEwrjRKR38rjvrfmHLBy/q0gg6SlG0Mf577KUsAJCQnA" crossorigin="anonymous"></script>
 ```
 
-The copy in this folder ([`orbit-talk.js`](orbit-talk.js)) is byte-for-byte what that URL serves for version 1.1.0 (sha256 `f983dcbef629f2abb06f295a8c06111ecbae2baadef4da522a9f62a1e79d245c`). Self-hosting it works, but you then stop receiving fixes; loading it from the platform is recommended.
+The copy in this folder ([`orbit-talk.js`](orbit-talk.js)) is byte-for-byte what that URL serves for version 1.1.0 (sha256 `07adaa66ec55f8e324f69c5ab0dbaf25cb9d77a43ae1b7985ba3a4c52eb7e35d`). Self-hosting it works, but you then stop receiving fixes; loading it from the platform is recommended.
 
 Browser support: current versions of Chrome, Edge, Firefox and Safari, desktop and mobile. The script defines one global, `OrbitTalk`.
 
