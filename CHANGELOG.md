@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-01
+
+- Orbit Verify: 1.4.0 (same version, contents changed)
+- Orbit Player (Stream and VOD): 1.6.10
+- OpenAPI: 315 paths
+
 ## 2026-09-28
 
 - Orbit Player (Stream and VOD): 1.6.8

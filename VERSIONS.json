@@ -20,17 +20,17 @@
   "verify": {
     "version": "1.4.0",
     "url": "https://verify.yunzheng.space/v1.js",
-    "sri": "sha384-Zw45nY6+hkVARMZT+dVbwUHdVc7a1Rnu+HVu+M7KbpPCuZj4aVC+hOIinXTORtF1",
-    "sha256": "1c4064f56d8d4ed23851f53fb83039e7d3070afbc038b2aacf2ab9c7573f193f"
+    "sri": "sha384-2D/i+pNMd/i0dhly0KaA6rzp8WxPvywsQLUnpnyWHBv/YINfhbVBlD98oNiNwt7/",
+    "sha256": "99fe7daaaac4bdb950ac82a425a58e083a565f171825b27613974bd3c3f8f5a5"
   },
   "player": {
-    "version": "1.6.8",
+    "version": "1.6.10",
     "url": "https://live.yunzheng.space/v1.js",
-    "sri": "sha384-pFgetRsy2plk241ehM55L/PoALX3PEBe5BU6a7NgzOsoVF7qdv/BmLfckV9Y/W/s",
-    "sha256": "fb2a7ac216104bcf8cce0bc96e172d29dd7971fa0aab171ec164f986b73c4dd5"
+    "sri": "sha384-2Psai15m6HQPMDvymYIU0WYtSqR49ZnRDCwUtkwvHZGCXwRh3kqfGEVlMvOSXFeS",
+    "sha256": "267060cc0d1d8d208c4043e22a4775e3880117e74310bf315aa58215d2bd1ca6"
   },
   "api": {
     "version": "1.0.0",
-    "paths": 292
+    "paths": 315
   }
 }

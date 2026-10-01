@@ -1,0 +1,24 @@
+{
+  "name": "@yunzheng/orbit-cli",
+  "version": "0.1.0",
+  "description": "Orbit from the command line: every API endpoint, plus plan/apply for DNS and Shield configuration.",
+  "type": "module",
+  "bin": {
+    "orbit": "bin/orbit.mjs"
+  },
+  "exports": {
+    "./config": {
+      "types": "./config.d.ts"
+    }
+  },
+  "files": [
+    "bin",
+    "lib",
+    "config.d.ts",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22.18"
+  },
+  "license": "MIT"
+}

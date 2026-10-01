@@ -100,6 +100,10 @@
       "description": "Business messaging on your numbers: sending and the message log, sender identities, templates, verification codes, consent records, scheduled sends and broadcasts, opt-outs and usage. Webhook events: sgate.message.received, sgate.message.status, sgate.verification.approved | failed | expired | canceled, sgate.broadcast.completed"
     },
     {
+      "name": "Orbit Help",
+      "description": "The help desk of an organisation with Orbit Help: tickets, replies, customers, departments. Reached as the organisation (a console session switched to it, or a token made there, by its owner or a helpdesk administrator of the whole organisation) or as the Orbit account it uses; the help desk is always the one bound to that organisation. Webhook events (set up under the organisation's Orbit Help settings): ticket.created, ticket.replied, ticket.status_changed, ticket.assigned, signed like every Orbit webhook"
+    },
+    {
       "name": "Billing",
       "description": "Packs sold as Stripe subscriptions: Checkout, Customer Portal, invoices. 503 billing_not_configured while Stripe is not set up"
     }
@@ -3152,7 +3156,8 @@
             "enum": [
               "owner",
               "admin",
-              "member"
+              "member",
+              "guest"
             ]
           },
           "state": {
@@ -3160,7 +3165,8 @@
             "enum": [
               "active",
               "invited",
-              "suspended"
+              "suspended",
+              "offboarded"
             ]
           },
           "owner": {
@@ -3180,7 +3186,8 @@
             "type": "string",
             "enum": [
               "admin",
-              "member"
+              "member",
+              "guest"
             ]
           },
           "state": {
@@ -3206,7 +3213,8 @@
             "type": "string",
             "enum": [
               "admin",
-              "member"
+              "member",
+              "guest"
             ]
           },
           "expires_at": {
@@ -3248,9 +3256,17 @@
             "type": "string",
             "enum": [
               "admin",
-              "member"
+              "member",
+              "guest"
             ],
             "default": "member"
+          },
+          "template_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Role templates applied when the invitation is accepted"
           }
         }
       },
@@ -3300,6 +3316,613 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          }
+        }
+      },
+      "OrgSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "personal",
+              "lab",
+              "orbit"
+            ]
+          },
+          "role": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "principal": {
+            "type": "string"
+          }
+        }
+      },
+      "OrgGroup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "parent_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "links": {
+            "type": "object",
+            "description": "mail_group, drive, chat, helpdesk {departments}, voice_group"
+          },
+          "created_at": {
+            "type": "string"
+          }
+        }
+      },
+      "OrgGroupCreate": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "parent_id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "OrgGroupPatch": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "links": {
+            "type": "object"
+          }
+        }
+      },
+      "OrgBinding": {
+        "type": "object",
+        "required": [
+          "role"
+        ],
+        "properties": {
+          "role": {
+            "type": "string",
+            "description": "admin | member | readonly | a delegated role (hr, mail_admin, voice_admin, helpdesk_lead, access_admin, billing, auditor) | orl_…"
+          },
+          "scope_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "A group or department; empty = the whole organisation"
+          }
+        }
+      },
+      "OrgOk": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "job": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OrgItem": {
+        "type": "object",
+        "required": [
+          "product",
+          "kind"
+        ],
+        "properties": {
+          "product": {
+            "type": "string",
+            "enum": [
+              "mail",
+              "voice",
+              "drive",
+              "chat",
+              "meet",
+              "helpdesk"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "mailbox",
+              "mail_group",
+              "mailbox_access",
+              "extension",
+              "ring_group",
+              "shared_drive",
+              "drive_quota",
+              "chat_space",
+              "meet_host",
+              "helpdesk_seat"
+            ]
+          },
+          "domain_id": {
+            "type": "integer"
+          },
+          "local": {
+            "type": "string",
+            "description": "{local}, {first}.{last} or a literal"
+          },
+          "quota_gb": {
+            "type": "number"
+          },
+          "group_id": {
+            "type": "string"
+          },
+          "mailbox_id": {
+            "type": "string"
+          },
+          "perm": {
+            "type": "string",
+            "enum": [
+              "full",
+              "read"
+            ]
+          },
+          "pbx_id": {
+            "type": "string"
+          },
+          "range": {
+            "type": "string",
+            "example": "200-299"
+          },
+          "drive_id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "description": "shared_drive: manager|editor|commenter|viewer; helpdesk_seat: agent|supervisor|viewer"
+          },
+          "gb": {
+            "type": "integer"
+          },
+          "space_id": {
+            "type": "string"
+          },
+          "readonly": {
+            "type": "boolean"
+          },
+          "department_id": {
+            "type": "integer"
+          }
+        }
+      },
+      "OrgAssignment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "product": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "ref": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "active",
+              "revoked"
+            ]
+          },
+          "item": {
+            "type": "object",
+            "required": [
+              "product",
+              "kind"
+            ],
+            "properties": {
+              "product": {
+                "type": "string",
+                "enum": [
+                  "mail",
+                  "voice",
+                  "drive",
+                  "chat",
+                  "meet",
+                  "helpdesk"
+                ]
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "mailbox",
+                  "mail_group",
+                  "mailbox_access",
+                  "extension",
+                  "ring_group",
+                  "shared_drive",
+                  "drive_quota",
+                  "chat_space",
+                  "meet_host",
+                  "helpdesk_seat"
+                ]
+              },
+              "domain_id": {
+                "type": "integer"
+              },
+              "local": {
+                "type": "string",
+                "description": "{local}, {first}.{last} or a literal"
+              },
+              "quota_gb": {
+                "type": "number"
+              },
+              "group_id": {
+                "type": "string"
+              },
+              "mailbox_id": {
+                "type": "string"
+              },
+              "perm": {
+                "type": "string",
+                "enum": [
+                  "full",
+                  "read"
+                ]
+              },
+              "pbx_id": {
+                "type": "string"
+              },
+              "range": {
+                "type": "string",
+                "example": "200-299"
+              },
+              "drive_id": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string",
+                "description": "shared_drive: manager|editor|commenter|viewer; helpdesk_seat: agent|supervisor|viewer"
+              },
+              "gb": {
+                "type": "integer"
+              },
+              "space_id": {
+                "type": "string"
+              },
+              "readonly": {
+                "type": "boolean"
+              },
+              "department_id": {
+                "type": "integer"
+              }
+            }
+          },
+          "revoke_mode": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          }
+        }
+      },
+      "OrgApplyTemplates": {
+        "type": "object",
+        "required": [
+          "template_ids"
+        ],
+        "properties": {
+          "template_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preview": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OrgOffboard": {
+        "type": "object",
+        "properties": {
+          "preview": {
+            "type": "boolean"
+          },
+          "modes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "assignment id → handover | transfer:<email> | delete | park | queue | remove | cancel"
+          }
+        }
+      },
+      "OrgTemplate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/OrgTemplateSpec"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OrgTemplateSpec": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "product",
+                "kind"
+              ],
+              "properties": {
+                "product": {
+                  "type": "string",
+                  "enum": [
+                    "mail",
+                    "voice",
+                    "drive",
+                    "chat",
+                    "meet",
+                    "helpdesk"
+                  ]
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "mailbox",
+                    "mail_group",
+                    "mailbox_access",
+                    "extension",
+                    "ring_group",
+                    "shared_drive",
+                    "drive_quota",
+                    "chat_space",
+                    "meet_host",
+                    "helpdesk_seat"
+                  ]
+                },
+                "domain_id": {
+                  "type": "integer"
+                },
+                "local": {
+                  "type": "string",
+                  "description": "{local}, {first}.{last} or a literal"
+                },
+                "quota_gb": {
+                  "type": "number"
+                },
+                "group_id": {
+                  "type": "string"
+                },
+                "mailbox_id": {
+                  "type": "string"
+                },
+                "perm": {
+                  "type": "string",
+                  "enum": [
+                    "full",
+                    "read"
+                  ]
+                },
+                "pbx_id": {
+                  "type": "string"
+                },
+                "range": {
+                  "type": "string",
+                  "example": "200-299"
+                },
+                "drive_id": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": "string",
+                  "description": "shared_drive: manager|editor|commenter|viewer; helpdesk_seat: agent|supervisor|viewer"
+                },
+                "gb": {
+                  "type": "integer"
+                },
+                "space_id": {
+                  "type": "string"
+                },
+                "readonly": {
+                  "type": "boolean"
+                },
+                "department_id": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "group_id": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "admin",
+                    "member",
+                    "readonly"
+                  ]
+                }
+              }
+            }
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgBinding"
+            }
+          }
+        }
+      },
+      "OrgTemplateCreate": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/OrgTemplateSpec"
+          }
+        }
+      },
+      "OrgJob": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "failed",
+              "done",
+              "cancelled"
+            ]
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "op": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                },
+                "error": {
+                  "type": "string",
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          }
+        }
+      },
+      "OrgPolicy": {
+        "type": "object",
+        "properties": {
+          "require_mfa": {
+            "type": "boolean"
+          },
+          "session_max_hours": {
+            "type": "integer",
+            "nullable": true
+          },
+          "meet_hosts_only": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OrgAuditEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "actor": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
           }
         }
       },
@@ -6329,6 +6952,512 @@
           }
         }
       },
+      "HelpTicket": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "string",
+            "example": "261001-0001"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "a status key of this help desk (GET /helpdesk/statuses)"
+          },
+          "status_label": {
+            "type": "string"
+          },
+          "status_category": {
+            "type": "string",
+            "enum": [
+              "active",
+              "closed"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "low",
+              "normal",
+              "high",
+              "urgent"
+            ]
+          },
+          "type": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "description": "web, email, widget, api …"
+          },
+          "department": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "assignee": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "email": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "customer": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "email": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "merged_into": {
+            "type": "string",
+            "nullable": true,
+            "description": "the ticket this one was merged into"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_message_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "first_response_due_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "resolution_due_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "HelpTicketFull": {
+        "type": "object",
+        "description": "A ticket (the fields of HelpTicket) with its messages and attachments",
+        "properties": {
+          "number": {
+            "type": "string",
+            "example": "261001-0001"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "a status key of this help desk (GET /helpdesk/statuses)"
+          },
+          "status_label": {
+            "type": "string"
+          },
+          "status_category": {
+            "type": "string",
+            "enum": [
+              "active",
+              "closed"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "low",
+              "normal",
+              "high",
+              "urgent"
+            ]
+          },
+          "type": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "description": "web, email, widget, api …"
+          },
+          "department": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "assignee": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "email": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "customer": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "email": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "merged_into": {
+            "type": "string",
+            "nullable": true,
+            "description": "the ticket this one was merged into"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_message_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "first_response_due_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "resolution_due_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "message",
+                    "response",
+                    "note",
+                    "system"
+                  ]
+                },
+                "from": {
+                  "type": "string",
+                  "enum": [
+                    "customer",
+                    "agent",
+                    "system"
+                  ]
+                },
+                "internal": {
+                  "type": "boolean",
+                  "description": "an internal note, never shown to the customer"
+                },
+                "author_name": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "body": {
+                  "type": "string"
+                },
+                "channel": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "message_id": {
+                  "type": "integer",
+                  "nullable": true
+                },
+                "filename": {
+                  "type": "string"
+                },
+                "size": {
+                  "type": "integer"
+                },
+                "mime": {
+                  "type": "string"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      },
+      "HelpTicketCreate": {
+        "type": "object",
+        "required": [
+          "customer",
+          "subject",
+          "body"
+        ],
+        "properties": {
+          "customer": {
+            "type": "object",
+            "required": [
+              "email"
+            ],
+            "properties": {
+              "email": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "department_id": {
+            "type": "integer",
+            "description": "omit for the default department"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "low",
+              "normal",
+              "high",
+              "urgent"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20
+          },
+          "notify_customer": {
+            "type": "boolean",
+            "default": true,
+            "description": "send the customer the usual acknowledgement"
+          }
+        }
+      },
+      "HelpReply": {
+        "type": "object",
+        "required": [
+          "body"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "from": {
+            "type": "string",
+            "enum": [
+              "agent",
+              "customer"
+            ],
+            "default": "agent",
+            "description": "agent: a reply from the help desk (emailed to the customer unless internal). customer: a message on the customer's behalf, for example from your own chat."
+          },
+          "internal": {
+            "type": "boolean",
+            "default": false,
+            "description": "agent only: an internal note"
+          },
+          "agent_email": {
+            "type": "string",
+            "description": "agent only: the active agent the reply is from (the first reply assigns the ticket to them). Omit to reply as the help desk."
+          },
+          "author_name": {
+            "type": "string",
+            "description": "agent only, without agent_email: the name shown on the reply"
+          },
+          "status": {
+            "type": "string",
+            "description": "agent only: the status to set with the reply"
+          }
+        }
+      },
+      "HelpTicketUpdate": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "low",
+              "normal",
+              "high",
+              "urgent"
+            ]
+          },
+          "department_id": {
+            "type": "integer"
+          },
+          "assignee_email": {
+            "type": "string",
+            "nullable": true,
+            "description": "an active agent of this help desk; null to unassign"
+          },
+          "add_tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "remove_tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "HelpCustomer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "tickets": {
+            "type": "integer"
+          },
+          "open_tickets": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "HelpDepartment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "default": {
+            "type": "boolean"
+          }
+        }
+      },
+      "HelpStatus": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "active",
+              "closed"
+            ]
+          },
+          "default": {
+            "type": "boolean"
+          }
+        }
+      },
       "VoiceEndpoint": {
         "type": "object",
         "properties": {
@@ -6632,8 +7761,18 @@
             "type": "string",
             "enum": [
               "token",
-              "session"
+              "session",
+              "partner"
             ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write",
+              "link"
+            ],
+            "description": "what this credential may do: read-only, read and write, or Orbit Link only. A browser session is write."
           },
           "api_enabled": {
             "type": "boolean"
@@ -9875,6 +11014,10 @@
               }
             }
           },
+          "rum": {
+            "type": "boolean",
+            "description": "Real-visitor performance measurement is on"
+          },
           "created_at": {
             "type": "string"
           },
@@ -10265,6 +11408,10 @@
                 "default": 40
               }
             }
+          },
+          "rum": {
+            "type": "boolean",
+            "description": "Measure real visitors' page loads (largest contentful paint, interaction to next paint, layout shift, first paint, time to first byte). Only anonymous histograms are kept. Changing it clears the site's edge cache."
           }
         }
       },
@@ -11689,6 +12836,77 @@
               "type": "string"
             },
             "description": "Which sections derive from the sample rather than exact counters"
+          }
+        }
+      },
+      "RumMetric": {
+        "type": "object",
+        "properties": {
+          "p75": {
+            "type": "number",
+            "nullable": true,
+            "description": "75th percentile: milliseconds, or unitless for cls"
+          },
+          "at_least": {
+            "type": "boolean",
+            "description": "The percentile is above the highest measured bucket; p75 is a lower bound"
+          },
+          "rating": {
+            "type": "string",
+            "enum": [
+              "good",
+              "ni",
+              "poor",
+              "none"
+            ]
+          },
+          "samples": {
+            "type": "integer"
+          },
+          "good": {
+            "type": "number"
+          },
+          "needs_improvement": {
+            "type": "number"
+          },
+          "poor": {
+            "type": "number"
+          }
+        }
+      },
+      "SiteRum": {
+        "type": "object",
+        "properties": {
+          "site_id": {
+            "type": "integer"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "range": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object",
+            "description": "lcp, inp, cls, fcp, ttfb: each a RumMetric for all visitors plus desktop and mobile",
+            "additionalProperties": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/RumMetric"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "desktop": {
+                      "$ref": "#/components/schemas/RumMetric"
+                    },
+                    "mobile": {
+                      "$ref": "#/components/schemas/RumMetric"
+                    }
+                  }
+                }
+              ]
+            }
           }
         }
       },
@@ -24176,6 +25394,112 @@
         }
       }
     },
+    "/cdn/sites/{id}/rum": {
+      "get": {
+        "operationId": "sites.rum",
+        "summary": "Real-visitor performance: 75th percentile and good / needs improvement / poor shares per metric",
+        "tags": [
+          "Shield CDN"
+        ],
+        "x-scope": "read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Site ID"
+          },
+          {
+            "name": "range",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "24h",
+                "7d",
+                "30d"
+              ],
+              "default": "24h"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteRum"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "upstream_error — a dependency we call on your behalf did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/cdn/sites/{id}/waf/hits": {
       "get": {
         "operationId": "sites.wafhits",
@@ -29365,7 +30689,7 @@
     "/billing/checkout": {
       "post": {
         "operationId": "billing.checkout",
-        "summary": "Buy or switch to a pack: a Stripe Checkout URL, or an in-place change of the running subscription",
+        "summary": "Buy or switch to a pack: a checkout URL, or an in-place change of the running subscription",
         "tags": [
           "Billing"
         ],
@@ -29470,7 +30794,7 @@
     "/billing/portal": {
       "post": {
         "operationId": "billing.portal",
-        "summary": "Stripe Customer Portal URL (payment method, cancel, invoices)",
+        "summary": "Billing portal URL (payment method, cancel, invoices)",
         "tags": [
           "Billing"
         ],
@@ -29565,7 +30889,7 @@
     "/billing/invoices": {
       "get": {
         "operationId": "billing.invoices",
-        "summary": "Invoices from Stripe (newest first, up to 24)",
+        "summary": "Invoices (newest first, up to 24)",
         "tags": [
           "Billing"
         ],
@@ -33532,6 +34856,18 @@
               }
             }
           }
+        },
+        "x-raw-body": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
         }
       }
     },
@@ -35940,7 +37276,7 @@
       },
       "delete": {
         "operationId": "org.members.remove",
-        "summary": "Remove somebody from the organisation",
+        "summary": "Remove somebody from the organisation (offboarding with the default modes; restorable for 30 days)",
         "tags": [
           "Organization"
         ],
@@ -36311,6 +37647,2022 @@
                           "nullable": true
                         }
                       }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orgs": {
+      "get": {
+        "operationId": "org.orgs.list",
+        "summary": "Every organisation this account belongs to",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OrgSummary"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/groups": {
+      "get": {
+        "operationId": "org.groups.list",
+        "summary": "Groups and departments (a tree of at most three levels)",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OrgGroup"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "org.groups.create",
+        "summary": "Create a group, or a department inside one",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgGroup"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgGroupCreate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/groups/{id}": {
+      "patch": {
+        "operationId": "org.groups.patch",
+        "summary": "Rename a group or change what it gives its members",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Group ID (ogr_…)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgGroup"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgGroupPatch"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "org.groups.delete",
+        "summary": "Delete an empty group",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Group ID (ogr_…)"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/members/{sub}/bindings": {
+      "get": {
+        "operationId": "org.members.bindings.list",
+        "summary": "A member's (role, scope) bindings",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "read",
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The member's IdP subject (or their address)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OrgBinding"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "org.members.bindings.add",
+        "summary": "Give a member a role on the organisation or on a group; joining a group gives what it carries",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The member's IdP subject (or their address)"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgOk"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgBinding"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/members/{sub}/bindings/remove": {
+      "post": {
+        "operationId": "org.members.bindings.remove",
+        "summary": "Remove a binding; what that group gave is taken back",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The member's IdP subject (or their address)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgOk"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgBinding"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/members/{sub}/assignments": {
+      "get": {
+        "operationId": "org.members.assignments.list",
+        "summary": "What a member has been given in each product",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "read",
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The member's IdP subject (or their address)"
+          },
+          {
+            "name": "all",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "description": "Include taken-back items"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OrgAssignment"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "org.members.assign",
+        "summary": "Give a member one item (a mailbox, an extension, a shared drive, …); runs as a job",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The member's IdP subject (or their address)"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgItem"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/members/{sub}/templates": {
+      "post": {
+        "operationId": "org.members.templates",
+        "summary": "Apply role templates to a member (preview: true to see the plan first)",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The member's IdP subject (or their address)"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgApplyTemplates"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/members/{sub}/offboard": {
+      "post": {
+        "operationId": "org.members.offboard",
+        "summary": "Remove a member: every assignment goes where its mode says; restorable for 30 days (preview: true lists the items and modes)",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The member's IdP subject (or their address)"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgOffboard"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/members/{sub}/restore": {
+      "post": {
+        "operationId": "org.members.restore",
+        "summary": "Restore a member removed less than 30 days ago, with everything they had",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The member's IdP subject (or their address)"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/templates": {
+      "get": {
+        "operationId": "org.templates.list",
+        "summary": "Role templates",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OrgTemplate"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "org.templates.create",
+        "summary": "Create a role template",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgTemplate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgTemplateCreate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/templates/{id}": {
+      "patch": {
+        "operationId": "org.templates.patch",
+        "summary": "Replace a role template's name and items",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Template ID (otp_…)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgTemplate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgTemplateCreate"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "org.templates.delete",
+        "summary": "Delete a role template (what it gave stays)",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Template ID (otp_…)"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/jobs": {
+      "get": {
+        "operationId": "org.jobs.list",
+        "summary": "Assignment jobs, newest first",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "read",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "queued",
+                "running",
+                "failed",
+                "done",
+                "cancelled"
+              ]
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OrgJob"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/jobs/{id}": {
+      "get": {
+        "operationId": "org.jobs.get",
+        "summary": "One job and its steps",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Job ID (ojb_…)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/jobs/{id}/retry": {
+      "post": {
+        "operationId": "org.jobs.retry",
+        "summary": "Run a failed job again from its failed step",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Job ID (ojb_…)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/policy": {
+      "get": {
+        "operationId": "org.policy.get",
+        "summary": "Organisation policies",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgPolicy"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "org.policy.put",
+        "summary": "Set organisation policies; they are pushed to every member's account",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "write",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgPolicy"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgPolicy"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/org/audit": {
+      "get": {
+        "operationId": "org.audit.list",
+        "summary": "The organisation's audit log",
+        "tags": [
+          "Organization"
+        ],
+        "x-scope": "read",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OrgAuditEntry"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object"
                     }
                   }
                 }
@@ -44305,6 +47657,18 @@
               }
             }
           }
+        },
+        "x-raw-body": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
         }
       },
       "get": {
@@ -50764,6 +54128,879 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SgateBroadcast"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/tickets": {
+      "get": {
+        "operationId": "helpdesk.tickets.list",
+        "summary": "List tickets, most recently updated first",
+        "tags": [
+          "Orbit Help"
+        ],
+        "x-scope": "read",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "a status key, or `active` / `closed` for every status of that kind"
+          },
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "only this department"
+          },
+          {
+            "name": "customer",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "only this customer (email address)"
+          },
+          {
+            "name": "assignee",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "only tickets assigned to this agent (email address)"
+          },
+          {
+            "name": "updated_since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "only tickets changed at or after this time"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            },
+            "description": "Rows per page (1-100)."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Rows to skip."
+          },
+          {
+            "name": "org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "org_…"
+            },
+            "description": "Which organisation, when the Orbit account you use is the access layer of more than one with Orbit Help. Ignored otherwise; never reaches an organisation the caller does not."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/HelpTicket"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "helpdesk.tickets.create",
+        "summary": "Open a ticket for a customer",
+        "tags": [
+          "Orbit Help"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "org_…"
+            },
+            "description": "Which organisation, when the Orbit account you use is the access layer of more than one with Orbit Help. Ignored otherwise; never reaches an organisation the caller does not."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpTicketFull"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HelpTicketCreate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/tickets/{number}": {
+      "get": {
+        "operationId": "helpdesk.tickets.get",
+        "summary": "A ticket with its messages and attachments",
+        "tags": [
+          "Orbit Help"
+        ],
+        "x-scope": "read",
+        "parameters": [
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "261001-0001"
+            },
+            "description": "Ticket number"
+          },
+          {
+            "name": "org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "org_…"
+            },
+            "description": "Which organisation, when the Orbit account you use is the access layer of more than one with Orbit Help. Ignored otherwise; never reaches an organisation the caller does not."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpTicketFull"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "helpdesk.tickets.update",
+        "summary": "Change a ticket's status, priority, department, assignee or tags",
+        "tags": [
+          "Orbit Help"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "261001-0001"
+            },
+            "description": "Ticket number"
+          },
+          {
+            "name": "org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "org_…"
+            },
+            "description": "Which organisation, when the Orbit account you use is the access layer of more than one with Orbit Help. Ignored otherwise; never reaches an organisation the caller does not."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpTicketFull"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HelpTicketUpdate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/tickets/{number}/replies": {
+      "post": {
+        "operationId": "helpdesk.tickets.reply",
+        "summary": "Reply to a ticket, add an internal note, or add a message from the customer",
+        "tags": [
+          "Orbit Help"
+        ],
+        "x-scope": "write",
+        "parameters": [
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "261001-0001"
+            },
+            "description": "Ticket number"
+          },
+          {
+            "name": "org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "org_…"
+            },
+            "description": "Which organisation, when the Orbit account you use is the access layer of more than one with Orbit Help. Ignored otherwise; never reaches an organisation the caller does not."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpTicketFull"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HelpReply"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/customers": {
+      "get": {
+        "operationId": "helpdesk.customers.list",
+        "summary": "Find a customer by email, or list customers, newest first",
+        "tags": [
+          "Orbit Help"
+        ],
+        "x-scope": "read",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "exactly this address"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            },
+            "description": "Rows per page (1-100)."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Rows to skip."
+          },
+          {
+            "name": "org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "org_…"
+            },
+            "description": "Which organisation, when the Orbit account you use is the access layer of more than one with Orbit Help. Ignored otherwise; never reaches an organisation the caller does not."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/HelpCustomer"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/departments": {
+      "get": {
+        "operationId": "helpdesk.departments.list",
+        "summary": "Departments (queues) of the help desk",
+        "tags": [
+          "Orbit Help"
+        ],
+        "x-scope": "read",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "org_…"
+            },
+            "description": "Which organisation, when the Orbit account you use is the access layer of more than one with Orbit Help. Ignored otherwise; never reaches an organisation the caller does not."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/HelpDepartment"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation_error / limit_exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden (scope or ownership)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/statuses": {
+      "get": {
+        "operationId": "helpdesk.statuses.list",
+        "summary": "Ticket statuses of the help desk",
+        "tags": [
+          "Orbit Help"
+        ],
+        "x-scope": "read",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "org_…"
+            },
+            "description": "Which organisation, when the Orbit account you use is the access layer of more than one with Orbit Help. Ignored otherwise; never reaches an organisation the caller does not."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/HelpStatus"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  }
                 }
               }
             }

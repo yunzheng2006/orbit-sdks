@@ -1,4 +1,4 @@
-# Orbit Player (Stream and VOD) SDK 1.6.8
+# Orbit Player (Stream and VOD) SDK 1.6.10
 
 The player for live channels and uploaded videos: adaptive HLS, near-real-time live when the channel offers it.
 
@@ -15,10 +15,10 @@ Nothing to install and no build step. Load the script from the platform:
 Or pin exactly this version with Subresource Integrity:
 
 ```html
-<script src="https://live.yunzheng.space/v1.js" integrity="sha384-pFgetRsy2plk241ehM55L/PoALX3PEBe5BU6a7NgzOsoVF7qdv/BmLfckV9Y/W/s" crossorigin="anonymous"></script>
+<script src="https://live.yunzheng.space/v1.js" integrity="sha384-2Psai15m6HQPMDvymYIU0WYtSqR49ZnRDCwUtkwvHZGCXwRh3kqfGEVlMvOSXFeS" crossorigin="anonymous"></script>
 ```
 
-The copy in this folder ([`orbit-player.js`](orbit-player.js)) is byte-for-byte what that URL serves for version 1.6.8 (sha256 `fb2a7ac216104bcf8cce0bc96e172d29dd7971fa0aab171ec164f986b73c4dd5`). Self-hosting it works, but you then stop receiving fixes; loading it from the platform is recommended.
+The copy in this folder ([`orbit-player.js`](orbit-player.js)) is byte-for-byte what that URL serves for version 1.6.10 (sha256 `267060cc0d1d8d208c4043e22a4775e3880117e74310bf315aa58215d2bd1ca6`). Self-hosting it works, but you then stop receiving fixes; loading it from the platform is recommended.
 
 Browser support: current versions of Chrome, Edge, Firefox and Safari, desktop and mobile. The script defines one global, `OrbitPlayer`.
 
@@ -178,7 +178,7 @@ Full documentation: <https://orbit.yunzheng.space/docs/vod/>
 
 ### 引入
 
-无需安装,也没有构建步骤。直接从平台加载 `https://live.yunzheng.space/v1.js`,或用上方带 `integrity` 的写法固定版本 1.6.8。本目录中的 `orbit-player.js` 与该地址提供的内容逐字节一致。支持当前版本的 Chrome、Edge、Firefox 与 Safari(桌面与移动端)。
+无需安装,也没有构建步骤。直接从平台加载 `https://live.yunzheng.space/v1.js`,或用上方带 `integrity` 的写法固定版本 1.6.10。本目录中的 `orbit-player.js` 与该地址提供的内容逐字节一致。支持当前版本的 Chrome、Edge、Firefox 与 Safari(桌面与移动端)。
 
 ### 观看地址
 
